@@ -209,12 +209,19 @@ BOOL freerdp_connect(freerdp* instance)
 		goto freerdp_connect_finally;
 	}
 
+	WLog_INFO(TAG, "instance->settings->DumpRemoteFx: %" PRId32 "", instance->settings->DumpRemoteFx);
+	WLog_INFO(TAG, "instance->settings->DumpRemoteFxFile: %s", instance->settings->DumpRemoteFxFile);
+
 	if (instance->settings->DumpRemoteFx)
 	{
+		WLog_INFO(TAG, "instance->settings->DumpRemoteFx is True");
 		instance->update->pcap_rfx = pcap_open(instance->settings->DumpRemoteFxFile, TRUE);
 
 		if (instance->update->pcap_rfx)
+		{
+			WLog_INFO(TAG, "instance->update->pcap_rfx for DumpRemoteFxFile not empty, pcap_open succeeded");
 			instance->update->dump_rfx = TRUE;
+		}	
 	}
 
 	if (status)
@@ -244,8 +251,13 @@ BOOL freerdp_connect(freerdp* instance)
 		goto freerdp_connect_finally;
 	}
 
+	WLog_INFO(TAG, "instance->settings->PlayRemoteFx: %" PRId32 "", instance->settings->PlayRemoteFx);
+	WLog_INFO(TAG, "instance->settings->PlayRemoteFxFile: %s", instance->settings->PlayRemoteFxFile);
+
 	if (instance->settings->PlayRemoteFx)
 	{
+		WLog_INFO(TAG, "instance->settings->PlayRemoteFx is True");
+
 		wStream* s;
 		rdpUpdate* update;
 		pcap_record record;
@@ -256,7 +268,10 @@ BOOL freerdp_connect(freerdp* instance)
 		if (!update->pcap_rfx)
 			goto freerdp_connect_finally;
 		else
+		{
+			WLog_INFO(TAG, "instance->update->pcap_rfx for PlayRemoteFxFile not empty, pcap_open succeeded");
 			update->play_rfx = TRUE;
+		}
 
 		status = TRUE;
 
