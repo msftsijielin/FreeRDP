@@ -507,7 +507,9 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	BYTE compression;
 	BYTE compressionFlags;
 	UINT32 DstSize = 0;
+	size_t start;
 	BYTE* pDstData = NULL;
+	BYTE* mark;
 	rdpTransport* transport;
 
 	if (!fastpath || !s)
@@ -523,6 +525,9 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 
 	if (!transport)
 		return -1;
+
+	start = Stream_GetPosition(s);
+	Stream_GetPointer(s, mark);
 
 	if (!fastpath_read_update_header(s, &updateCode, &fragmentation, &compression))
 		return -1;
@@ -574,6 +579,14 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 		Stream_SealLength(fastpath->updateData);
 		Stream_SetPosition(fastpath->updateData, 0);
 		status = fastpath_recv_update(fastpath, updateCode, fastpath->updateData);
+		if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
+		{
+			const size_t size = Stream_GetPosition(s) - start;
+			BOOL isPcapAddSucceeded = pcap_add_record(fastpath->rdp->update->pcap_rfx, mark, size);
+			WLog_INFO(TAG, "!!!!!Recording FASTPATH_FRAGMENT_SINGLE!!!!! size: %" PRId32 ", isPcapAddSucceeded: %" PRId32 "",
+			          size, isPcapAddSucceeded);
+			pcap_flush(fastpath->rdp->update->pcap_rfx);
+		}
 		Stream_SetPosition(fastpath->updateData, 0);
 
 		if (status < 0)
@@ -627,6 +640,16 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 			Stream_SealLength(fastpath->updateData);
 			Stream_SetPosition(fastpath->updateData, 0);
 			status = fastpath_recv_update(fastpath, updateCode, fastpath->updateData);
+			if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
+			{
+				const size_t size = Stream_GetPosition(s) - start;
+				BOOL isPcapAddSucceeded =
+				    pcap_add_record(fastpath->rdp->update->pcap_rfx, mark, size);
+				WLog_INFO(TAG,
+				          "!!!!!Recording FASTPATH_FRAGMENT_LAST!!!!! size: %" PRId32 ", isPcapAddSucceeded: %" PRId32 "",
+				          size, isPcapAddSucceeded);
+				pcap_flush(fastpath->rdp->update->pcap_rfx);
+			}
 			Stream_SetPosition(fastpath->updateData, 0);
 
 			if (status < 0)
