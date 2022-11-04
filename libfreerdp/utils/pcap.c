@@ -181,7 +181,10 @@ rdpPcap* pcap_open(char* name, BOOL write)
 	pcap->fp = winpr_fopen(name, write ? "w+b" : "rb");
 
 	if (pcap->fp == NULL)
+	{
+		WLog_INFO(TAG, "pcap->fp == NULL");
 		goto fail;
+	}
 
 	if (write)
 	{
@@ -193,7 +196,11 @@ rdpPcap* pcap_open(char* name, BOOL write)
 		pcap->header.snaplen = 0xFFFFFFFF;
 		pcap->header.network = 0;
 		if (!pcap_write_header(pcap, &pcap->header))
+		{
+			WLog_INFO(TAG, "!pcap_write_header(pcap, &pcap->header)");
 			goto fail;
+		}
+			
 	}
 	else
 	{
@@ -201,7 +208,10 @@ rdpPcap* pcap_open(char* name, BOOL write)
 		pcap->file_size = _ftelli64(pcap->fp);
 		_fseeki64(pcap->fp, 0, SEEK_SET);
 		if (!pcap_read_header(pcap, &pcap->header))
+		{
+			WLog_INFO(TAG, "!pcap_read_header(pcap, &pcap->header)");
 			goto fail;
+		}
 	}
 
 	return pcap;

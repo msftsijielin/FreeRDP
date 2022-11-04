@@ -381,6 +381,8 @@ static int fastpath_recv_update(rdpFastPath* fastpath, BYTE updateCode, wStream*
 	          fastpath_update_to_string(updateCode), updateCode, Stream_GetRemainingLength(s));
 #endif
 
+	WLog_INFO(TAG, "!!!updateCode: %" PRId32 "", updateCode);
+
 	switch (updateCode)
 	{
 		case FASTPATH_UPDATETYPE_ORDERS:
