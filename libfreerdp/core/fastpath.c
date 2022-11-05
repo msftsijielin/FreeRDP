@@ -496,38 +496,6 @@ static int fastpath_recv_update(rdpFastPath* fastpath, BYTE updateCode, wStream*
 	return status;
 }
 
-static int fastpath_recv_update_with_record(rdpFastPath* fastpath, BYTE updateCode, wStream* s, BYTE* pMarkStart, size_t startPosition)
-{
-	int status;
-	WLog_INFO(TAG, "Before fastpath_recv_update:");
-	WLog_INFO(TAG, "startPosition: %" PRId32 "", startPosition);
-	WLog_INFO(TAG,
-	          "Stream_GetPosition(s): %" PRId32 ", Stream_GetPosition(fastpath->updateData): %" PRId32 "",
-	          Stream_GetPosition(s), Stream_GetPosition(fastpath->updateData));
-
-	status = fastpath_recv_update(fastpath, updateCode, fastpath->updateData);
-
-	WLog_INFO(TAG, "After fastpath_recv_update:");
-	WLog_INFO(TAG, "startPosition: %" PRId32 "", startPosition);
-	WLog_INFO(TAG,
-	          "Stream_GetPosition(s): %" PRId32
-	          ", Stream_GetPosition(fastpath->updateData): %" PRId32 "",
-	          Stream_GetPosition(s), Stream_GetPosition(fastpath->updateData));
-
-	if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
-	{
-		const size_t size = Stream_GetPosition(s) - startPosition;
-		BOOL isPcapAddSucceeded =
-		    pcap_add_record(fastpath->rdp->update->pcap_rfx, pMarkStart, size);
-		WLog_INFO(TAG,
-		          "!!!!!Recording FASTPATH_FRAGMENT_LAST!!!!! size: %" PRId32
-		          ", isPcapAddSucceeded: %" PRId32 "",
-		          size, isPcapAddSucceeded);
-		pcap_flush(fastpath->rdp->update->pcap_rfx);
-	}
-	return status;
-}
-
 static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 {
 	int status;
@@ -539,9 +507,9 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	BYTE compression;
 	BYTE compressionFlags;
 	UINT32 DstSize = 0;
-	size_t start;
+	size_t recordSize = 0;
 	BYTE* pDstData = NULL;
-	BYTE* mark;
+	BYTE* pRecordStart;
 	rdpTransport* transport;
 
 	if (!fastpath || !s)
@@ -558,8 +526,8 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	if (!transport)
 		return -1;
 
-	start = Stream_GetPosition(s);
-	Stream_GetPointer(s, mark);
+	recordSize = Stream_GetPosition(s);
+	Stream_GetPointer(s, pRecordStart);
 
 	if (!fastpath_read_update_header(s, &updateCode, &fragmentation, &compression))
 		return -1;
@@ -588,6 +556,19 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	bulkStatus =
 	    bulk_decompress(rdp->bulk, Stream_Pointer(s), size, &pDstData, &DstSize, compressionFlags);
 	Stream_Seek(s, size);
+	
+	recordSize = Stream_GetPosition(s) - recordSize;
+	WLog_INFO(TAG, "record size :%" PRId32 "", recordSize);
+	if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
+	{
+		BOOL isPcapAddSucceeded =
+		    pcap_add_record(fastpath->rdp->update->pcap_rfx, pRecordStart, recordSize);
+		WLog_INFO(TAG,
+		          "!!!!!Recording!!!!! size: %" PRId32
+		          ", isPcapAddSucceeded: %" PRId32 "",
+		          size, isPcapAddSucceeded);
+		pcap_flush(fastpath->rdp->update->pcap_rfx);
+	}
 
 	if (bulkStatus < 0)
 	{
@@ -610,7 +591,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 
 		Stream_SealLength(fastpath->updateData);
 		Stream_SetPosition(fastpath->updateData, 0);
-		status = fastpath_recv_update_with_record(fastpath, updateCode, fastpath->updateData, mark, start);
+		status = fastpath_recv_update(fastpath, updateCode, fastpath->updateData);
 		Stream_SetPosition(fastpath->updateData, 0);
 
 		if (status < 0)
@@ -663,7 +644,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 			fastpath->fragmentation = -1;
 			Stream_SealLength(fastpath->updateData);
 			Stream_SetPosition(fastpath->updateData, 0);
-			status = fastpath_recv_update_with_record(fastpath, updateCode, fastpath->updateData, mark, start);
+			status = fastpath_recv_update(fastpath, updateCode, fastpath->updateData);
 			Stream_SetPosition(fastpath->updateData, 0);
 
 			if (status < 0)
