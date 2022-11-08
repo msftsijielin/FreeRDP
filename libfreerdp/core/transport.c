@@ -729,6 +729,7 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
 	}
 	else
 	{
+		WLog_INFO(TAG, "header: %02X%02X%02X%02X", header[0], header[1], header[2], header[3]);
 		if (header[0] == 0x03)
 		{
 			/* TPKT header */

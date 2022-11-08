@@ -245,6 +245,8 @@ BOOL fastpath_read_header_rdp(rdpFastPath* fastpath, wStream* s, UINT16* length)
 
 	Stream_Read_UINT8(s, header);
 
+	WLog_INFO(TAG, "header in fastpath_read_header_rdp: X%02X", header);
+
 	if (fastpath)
 	{
 		fastpath->encryptionFlags = (header & 0xC0) >> 6;
@@ -507,9 +509,11 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	BYTE compression;
 	BYTE compressionFlags;
 	UINT32 DstSize = 0;
-	size_t recordSize = 0;
+	size_t fastPathSize = 0;
+	size_t streamSize = 0;
 	BYTE* pDstData = NULL;
-	BYTE* pRecordStart;
+	BYTE* pFastPathStart;
+	BYTE* pStreamStart;
 	rdpTransport* transport;
 
 	if (!fastpath || !s)
@@ -527,10 +531,11 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 		return -1;
 
 	WLog_INFO(TAG, "Stream_GetPosition(s) at the very beginning: %d", Stream_GetPosition(s));
-	recordSize = Stream_GetPosition(s);
-	Stream_GetPointer(s, pRecordStart);
-	WLog_INFO(TAG, "pRecordStart: %02X%02X%02X%02X", pRecordStart[0], pRecordStart[1],
-	          pRecordStart[2], pRecordStart[3]);
+	fastPathSize = Stream_GetPosition(s);
+	pStreamStart = Stream_Buffer(s);
+	Stream_GetPointer(s, pFastPathStart);
+	WLog_INFO(TAG, "pFastPathStart: %02X%02X%02X%02X", pFastPathStart[0], pFastPathStart[1],
+	          pFastPathStart[2], pFastPathStart[3]);
 
 	if (!fastpath_read_update_header(s, &updateCode, &fragmentation, &compression))
 		return -1;
@@ -570,16 +575,19 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	WLog_INFO(TAG, "pDstData: %02X%02X%02X%02X, DstSize: %d", pDstData[0], pDstData[1], pDstData[2],
 	          pDstData[3], DstSize);
 	
-	recordSize = Stream_GetPosition(s) - recordSize;
-	WLog_INFO(TAG, "record size :%" PRId32 "", recordSize);
+	fastPathSize = Stream_GetPosition(s) - fastPathSize;
+	WLog_INFO(TAG, "fastPathSize :%" PRId32 "", fastPathSize);
+	Stream_SealLength(s);
+	streamSize = Stream_Length(s);
+	WLog_INFO(TAG, "streamSize :%" PRId32 "", streamSize);
 	if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
 	{
 		BOOL isPcapAddSucceeded =
-		    pcap_add_record(fastpath->rdp->update->pcap_rfx, pRecordStart, recordSize);
+		    pcap_add_record(fastpath->rdp->update->pcap_rfx, pStreamStart, streamSize);
 		WLog_INFO(TAG,
 		          "!!!!!Recording!!!!! size: %" PRId32
 		          ", isPcapAddSucceeded: %" PRId32 "",
-		          size, isPcapAddSucceeded);
+		          streamSize, isPcapAddSucceeded);
 		pcap_flush(fastpath->rdp->update->pcap_rfx);
 	}
 
