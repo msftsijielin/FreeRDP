@@ -526,11 +526,17 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	if (!transport)
 		return -1;
 
+	WLog_INFO(TAG, "Stream_GetPosition(s) at the very beginning: %d", Stream_GetPosition(s));
 	recordSize = Stream_GetPosition(s);
 	Stream_GetPointer(s, pRecordStart);
+	WLog_INFO(TAG, "pRecordStart: %02X%02X%02X%02X", pRecordStart[0], pRecordStart[1],
+	          pRecordStart[2], pRecordStart[3]);
 
 	if (!fastpath_read_update_header(s, &updateCode, &fragmentation, &compression))
 		return -1;
+
+	WLog_INFO(TAG, "updateCode: %02X, fragmentation: %02X, compression: %02X", updateCode,
+	          fragmentation, compression);
 
 	if (compression == FASTPATH_OUTPUT_COMPRESSION_USED)
 	{
@@ -538,6 +544,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 			return -1;
 
 		Stream_Read_UINT8(s, compressionFlags);
+		WLog_INFO(TAG, "compressionFlags :%02X", compressionFlags);
 	}
 	else
 		compressionFlags = 0;
@@ -546,6 +553,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 		return -1;
 
 	Stream_Read_UINT16(s, size);
+	WLog_INFO(TAG, "size :%d", size);
 
 	if (Stream_GetRemainingLength(s) < size)
 	{
@@ -553,9 +561,14 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 		return -1;
 	}
 
+
+	WLog_INFO(TAG, "Stream_GetPosition(s) before bulk_decompress: %d", Stream_GetPosition(s));
 	bulkStatus =
 	    bulk_decompress(rdp->bulk, Stream_Pointer(s), size, &pDstData, &DstSize, compressionFlags);
 	Stream_Seek(s, size);
+	WLog_INFO(TAG, "Stream_GetPosition(s) after Stream_Seek(s, size): %d", Stream_GetPosition(s));
+	WLog_INFO(TAG, "pDstData: %02X%02X%02X%02X, DstSize: %d", pDstData[0], pDstData[1], pDstData[2],
+	          pDstData[3], DstSize);
 	
 	recordSize = Stream_GetPosition(s) - recordSize;
 	WLog_INFO(TAG, "record size :%" PRId32 "", recordSize);
