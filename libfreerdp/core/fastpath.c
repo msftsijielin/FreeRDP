@@ -579,8 +579,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	
 	fastPathSize = Stream_GetPosition(s) - fastPathSize;
 	WLog_INFO(TAG, "fastPathSize :%" PRId32 "", fastPathSize);
-	Stream_SealLength(s);
-	streamSize = Stream_Length(s);
+	streamSize = Stream_GetPosition(s);
 	WLog_INFO(TAG, "streamSize :%" PRId32 "", streamSize);
 	if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
 	{
