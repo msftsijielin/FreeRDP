@@ -529,11 +529,13 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 
 	if (!transport)
 		return -1;
-
+	WLog_INFO(TAG, "===============================================");
 	WLog_INFO(TAG, "Stream_GetPosition(s) at the very beginning: %d", Stream_GetPosition(s));
 	fastPathSize = Stream_GetPosition(s);
 	pStreamStart = Stream_Buffer(s);
 	Stream_GetPointer(s, pFastPathStart);
+	WLog_INFO(TAG, "pStreamStart: %02X%02X%02X%02X", pStreamStart[0], pStreamStart[1],
+	          pStreamStart[2], pStreamStart[3]);
 	WLog_INFO(TAG, "pFastPathStart: %02X%02X%02X%02X", pFastPathStart[0], pFastPathStart[1],
 	          pFastPathStart[2], pFastPathStart[3]);
 
