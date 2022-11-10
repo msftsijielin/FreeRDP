@@ -1493,6 +1493,7 @@ static int rdp_recv_pdu(rdpRdp* rdp, wStream* s)
 
 int rdp_recv_callback(rdpTransport* transport, wStream* s, void* extra)
 {
+	WLog_INFO(TAG, "rdp_recv_callback");
 	int status = 0;
 	rdpRdp* rdp = (rdpRdp*)extra;
 

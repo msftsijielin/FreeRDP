@@ -471,6 +471,7 @@ static int peer_recv_pdu(freerdp_peer* client, wStream* s)
 
 static int peer_recv_callback(rdpTransport* transport, wStream* s, void* extra)
 {
+	WLog_INFO(TAG, "peer_recv_callback");
 	UINT32 SelectedProtocol;
 	freerdp_peer* client = (freerdp_peer*)extra;
 	rdpRdp* rdp = client->context->rdp;
