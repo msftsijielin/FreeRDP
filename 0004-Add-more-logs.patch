@@ -1,0 +1,91 @@
+From 164449b1555c67da9e7ee0b9209e3e8190f6157c Mon Sep 17 00:00:00 2001
+From: Sijie Lin <sijielin@microsoft.com>
+Date: Fri, 4 Nov 2022 14:27:45 -0700
+Subject: [PATCH 04/11] Add more logs
+
+---
+ libfreerdp/core/fastpath.c | 54 ++++++++++++++++++++++++--------------
+ 1 file changed, 34 insertions(+), 20 deletions(-)
+
+diff --git a/libfreerdp/core/fastpath.c b/libfreerdp/core/fastpath.c
+index ef03a92dc..08e4462b1 100644
+--- a/libfreerdp/core/fastpath.c
++++ b/libfreerdp/core/fastpath.c
+@@ -496,6 +496,38 @@ static int fastpath_recv_update(rdpFastPath* fastpath, BYTE updateCode, wStream*
+ 	return status;
+ }
+ 
++static int fastpath_recv_update_with_record(rdpFastPath* fastpath, BYTE updateCode, wStream* s, BYTE* pMarkStart, size_t startPosition)
++{
++	int status;
++	WLog_INFO(TAG, "Before fastpath_recv_update:");
++	WLog_INFO(TAG, "startPosition: %" PRId32 "", startPosition);
++	WLog_INFO(TAG,
++	          "Stream_GetPosition(s): %" PRId32 ", Stream_GetPosition(fastpath->updateData): %" PRId32 "",
++	          Stream_GetPosition(s), Stream_GetPosition(fastpath->updateData));
++
++	status = fastpath_recv_update(fastpath, updateCode, fastpath->updateData);
++
++	WLog_INFO(TAG, "After fastpath_recv_update:");
++	WLog_INFO(TAG, "startPosition: %" PRId32 "", startPosition);
++	WLog_INFO(TAG,
++	          "Stream_GetPosition(s): %" PRId32
++	          ", Stream_GetPosition(fastpath->updateData): %" PRId32 "",
++	          Stream_GetPosition(s), Stream_GetPosition(fastpath->updateData));
++
++	if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
++	{
++		const size_t size = Stream_GetPosition(s) - startPosition;
++		BOOL isPcapAddSucceeded =
++		    pcap_add_record(fastpath->rdp->update->pcap_rfx, pMarkStart, size);
++		WLog_INFO(TAG,
++		          "!!!!!Recording FASTPATH_FRAGMENT_LAST!!!!! size: %" PRId32
++		          ", isPcapAddSucceeded: %" PRId32 "",
++		          size, isPcapAddSucceeded);
++		pcap_flush(fastpath->rdp->update->pcap_rfx);
++	}
++	return status;
++}
++
+ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
+ {
+ 	int status;
+@@ -578,15 +610,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
+ 
+ 		Stream_SealLength(fastpath->updateData);
+ 		Stream_SetPosition(fastpath->updateData, 0);
+-		status = fastpath_recv_update(fastpath, updateCode, fastpath->updateData);
+-		if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
+-		{
+-			const size_t size = Stream_GetPosition(s) - start;
+-			BOOL isPcapAddSucceeded = pcap_add_record(fastpath->rdp->update->pcap_rfx, mark, size);
+-			WLog_INFO(TAG, "!!!!!Recording FASTPATH_FRAGMENT_SINGLE!!!!! size: %" PRId32 ", isPcapAddSucceeded: %" PRId32 "",
+-			          size, isPcapAddSucceeded);
+-			pcap_flush(fastpath->rdp->update->pcap_rfx);
+-		}
++		status = fastpath_recv_update_with_record(fastpath, updateCode, fastpath->updateData, mark, start);
+ 		Stream_SetPosition(fastpath->updateData, 0);
+ 
+ 		if (status < 0)
+@@ -639,17 +663,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
+ 			fastpath->fragmentation = -1;
+ 			Stream_SealLength(fastpath->updateData);
+ 			Stream_SetPosition(fastpath->updateData, 0);
+-			status = fastpath_recv_update(fastpath, updateCode, fastpath->updateData);
+-			if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
+-			{
+-				const size_t size = Stream_GetPosition(s) - start;
+-				BOOL isPcapAddSucceeded =
+-				    pcap_add_record(fastpath->rdp->update->pcap_rfx, mark, size);
+-				WLog_INFO(TAG,
+-				          "!!!!!Recording FASTPATH_FRAGMENT_LAST!!!!! size: %" PRId32 ", isPcapAddSucceeded: %" PRId32 "",
+-				          size, isPcapAddSucceeded);
+-				pcap_flush(fastpath->rdp->update->pcap_rfx);
+-			}
++			status = fastpath_recv_update_with_record(fastpath, updateCode, fastpath->updateData, mark, start);
+ 			Stream_SetPosition(fastpath->updateData, 0);
+ 
+ 			if (status < 0)
+-- 
+2.24.1.windows.2
+

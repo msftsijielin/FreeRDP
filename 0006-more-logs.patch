@@ -1,0 +1,65 @@
+From 505fdd085eae4d1a102c2a121a88d20bded20d5b Mon Sep 17 00:00:00 2001
+From: Sijie Lin <sijielin@microsoft.com>
+Date: Tue, 8 Nov 2022 13:57:48 -0800
+Subject: [PATCH 06/11] more logs
+
+---
+ libfreerdp/core/fastpath.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/libfreerdp/core/fastpath.c b/libfreerdp/core/fastpath.c
+index 9adf3bee3..62d647b77 100644
+--- a/libfreerdp/core/fastpath.c
++++ b/libfreerdp/core/fastpath.c
+@@ -526,18 +526,25 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
+ 	if (!transport)
+ 		return -1;
+ 
++	WLog_INFO(TAG, "Stream_GetPosition(s) at the very beginning: %d", Stream_GetPosition(s));
+ 	recordSize = Stream_GetPosition(s);
+ 	Stream_GetPointer(s, pRecordStart);
++	WLog_INFO(TAG, "pRecordStart: %02X%02X%02X%02X", pRecordStart[0], pRecordStart[1],
++	          pRecordStart[2], pRecordStart[3]);
+ 
+ 	if (!fastpath_read_update_header(s, &updateCode, &fragmentation, &compression))
+ 		return -1;
+ 
++	WLog_INFO(TAG, "updateCode: %02X, fragmentation: %02X, compression: %02X", updateCode,
++	          fragmentation, compression);
++
+ 	if (compression == FASTPATH_OUTPUT_COMPRESSION_USED)
+ 	{
+ 		if (Stream_GetRemainingLength(s) < 1)
+ 			return -1;
+ 
+ 		Stream_Read_UINT8(s, compressionFlags);
++		WLog_INFO(TAG, "compressionFlags :%02X", compressionFlags);
+ 	}
+ 	else
+ 		compressionFlags = 0;
+@@ -546,6 +553,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
+ 		return -1;
+ 
+ 	Stream_Read_UINT16(s, size);
++	WLog_INFO(TAG, "size :%d", size);
+ 
+ 	if (Stream_GetRemainingLength(s) < size)
+ 	{
+@@ -553,9 +561,14 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
+ 		return -1;
+ 	}
+ 
++
++	WLog_INFO(TAG, "Stream_GetPosition(s) before bulk_decompress: %d", Stream_GetPosition(s));
+ 	bulkStatus =
+ 	    bulk_decompress(rdp->bulk, Stream_Pointer(s), size, &pDstData, &DstSize, compressionFlags);
+ 	Stream_Seek(s, size);
++	WLog_INFO(TAG, "Stream_GetPosition(s) after Stream_Seek(s, size): %d", Stream_GetPosition(s));
++	WLog_INFO(TAG, "pDstData: %02X%02X%02X%02X, DstSize: %d", pDstData[0], pDstData[1], pDstData[2],
++	          pDstData[3], DstSize);
+ 	
+ 	recordSize = Stream_GetPosition(s) - recordSize;
+ 	WLog_INFO(TAG, "record size :%" PRId32 "", recordSize);
+-- 
+2.24.1.windows.2
+

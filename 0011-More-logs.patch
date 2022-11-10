@@ -1,0 +1,50 @@
+From b41b3d9bc5e2461d0bcd337f70cad4c3103359bc Mon Sep 17 00:00:00 2001
+From: Sijie Lin <sijielin@microsoft.com>
+Date: Thu, 10 Nov 2022 09:51:13 -0800
+Subject: [PATCH 11/11] More logs
+
+---
+ libfreerdp/core/peer.c      | 1 +
+ libfreerdp/core/rdp.c       | 1 +
+ libfreerdp/core/transport.c | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/libfreerdp/core/peer.c b/libfreerdp/core/peer.c
+index aff32c254..7c79d3346 100644
+--- a/libfreerdp/core/peer.c
++++ b/libfreerdp/core/peer.c
+@@ -471,6 +471,7 @@ static int peer_recv_pdu(freerdp_peer* client, wStream* s)
+ 
+ static int peer_recv_callback(rdpTransport* transport, wStream* s, void* extra)
+ {
++	WLog_INFO(TAG, "peer_recv_callback");
+ 	UINT32 SelectedProtocol;
+ 	freerdp_peer* client = (freerdp_peer*)extra;
+ 	rdpRdp* rdp = client->context->rdp;
+diff --git a/libfreerdp/core/rdp.c b/libfreerdp/core/rdp.c
+index 610d81e25..bc5c796cb 100644
+--- a/libfreerdp/core/rdp.c
++++ b/libfreerdp/core/rdp.c
+@@ -1493,6 +1493,7 @@ static int rdp_recv_pdu(rdpRdp* rdp, wStream* s)
+ 
+ int rdp_recv_callback(rdpTransport* transport, wStream* s, void* extra)
+ {
++	WLog_INFO(TAG, "rdp_recv_callback");
+ 	int status = 0;
+ 	rdpRdp* rdp = (rdpRdp*)extra;
+ 
+diff --git a/libfreerdp/core/transport.c b/libfreerdp/core/transport.c
+index 4151519eb..e15d0bb1c 100644
+--- a/libfreerdp/core/transport.c
++++ b/libfreerdp/core/transport.c
+@@ -1029,6 +1029,7 @@ int transport_check_fds(rdpTransport* transport)
+ 
+ 	while (now < dueDate)
+ 	{
++		WLog_INFO(TAG, "NOW: %" PRIu64 ", dueDate: %" PRIu64 "", now, dueDate);
+ 		if (freerdp_shall_disconnect(transport->context->instance))
+ 		{
+ 			return -1;
+-- 
+2.24.1.windows.2
+

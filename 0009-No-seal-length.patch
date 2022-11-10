@@ -1,0 +1,47 @@
+From 18bc4020328be037304896a7bce4bc8fafcb7963 Mon Sep 17 00:00:00 2001
+From: Sijie Lin <sijielin@microsoft.com>
+Date: Tue, 8 Nov 2022 17:02:17 -0800
+Subject: [PATCH 09/11] No seal length
+
+---
+ libfreerdp/core/fastpath.c  | 3 +--
+ libfreerdp/core/transport.c | 2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/libfreerdp/core/fastpath.c b/libfreerdp/core/fastpath.c
+index eaa57dde3..10101b8c1 100644
+--- a/libfreerdp/core/fastpath.c
++++ b/libfreerdp/core/fastpath.c
+@@ -579,8 +579,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
+ 	
+ 	fastPathSize = Stream_GetPosition(s) - fastPathSize;
+ 	WLog_INFO(TAG, "fastPathSize :%" PRId32 "", fastPathSize);
+-	Stream_SealLength(s);
+-	streamSize = Stream_Length(s);
++	streamSize = Stream_GetPosition(s);
+ 	WLog_INFO(TAG, "streamSize :%" PRId32 "", streamSize);
+ 	if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx)
+ 	{
+diff --git a/libfreerdp/core/transport.c b/libfreerdp/core/transport.c
+index b5b3aabc1..c0d1a0939 100644
+--- a/libfreerdp/core/transport.c
++++ b/libfreerdp/core/transport.c
+@@ -729,7 +729,6 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
+ 	}
+ 	else
+ 	{
+-		WLog_INFO(TAG, "header: %02X%02X%02X%02X", header[0], header[1], header[2], header[3]);
+ 		if (header[0] == 0x03)
+ 		{
+ 			/* TPKT header */
+@@ -750,6 +749,7 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
+ 		}
+ 		else
+ 		{
++			WLog_INFO(TAG, "header: %02X%02X%02X", header[0], header[1], header[2]);
+ 			/* Fast-Path Header */
+ 			if (header[1] & 0x80)
+ 			{
+-- 
+2.24.1.windows.2
+

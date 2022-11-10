@@ -1,0 +1,31 @@
+From 8c61b04f08e2166fde7d3b2cb72a917241d377a7 Mon Sep 17 00:00:00 2001
+From: Sijie Lin <sijielin@microsoft.com>
+Date: Tue, 8 Nov 2022 16:10:43 -0800
+Subject: [PATCH 08/11] more log
+
+---
+ libfreerdp/core/fastpath.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/libfreerdp/core/fastpath.c b/libfreerdp/core/fastpath.c
+index 38a994e7c..eaa57dde3 100644
+--- a/libfreerdp/core/fastpath.c
++++ b/libfreerdp/core/fastpath.c
+@@ -529,11 +529,13 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
+ 
+ 	if (!transport)
+ 		return -1;
+-
++	WLog_INFO(TAG, "===============================================");
+ 	WLog_INFO(TAG, "Stream_GetPosition(s) at the very beginning: %d", Stream_GetPosition(s));
+ 	fastPathSize = Stream_GetPosition(s);
+ 	pStreamStart = Stream_Buffer(s);
+ 	Stream_GetPointer(s, pFastPathStart);
++	WLog_INFO(TAG, "pStreamStart: %02X%02X%02X%02X", pStreamStart[0], pStreamStart[1],
++	          pStreamStart[2], pStreamStart[3]);
+ 	WLog_INFO(TAG, "pFastPathStart: %02X%02X%02X%02X", pFastPathStart[0], pFastPathStart[1],
+ 	          pFastPathStart[2], pFastPathStart[3]);
+ 
+-- 
+2.24.1.windows.2
+
