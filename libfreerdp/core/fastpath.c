@@ -582,7 +582,7 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	streamSize = Stream_GetPosition(s);
 	WLog_INFO(TAG, "streamSize :%" PRId32 "", streamSize);
 	if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx &&
-	    (fragmentation == FASTPATH_FRAGMENT_SINGLE || FASTPATH_FRAGMENT_LAST))
+	    (fragmentation == FASTPATH_FRAGMENT_SINGLE || fragmentation == FASTPATH_FRAGMENT_LAST))
 	{
 		BOOL isPcapAddSucceeded =
 		    pcap_add_record(fastpath->rdp->update->pcap_rfx, pStreamStart, streamSize);
