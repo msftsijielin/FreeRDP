@@ -245,8 +245,6 @@ BOOL fastpath_read_header_rdp(rdpFastPath* fastpath, wStream* s, UINT16* length)
 
 	Stream_Read_UINT8(s, header);
 
-	WLog_INFO(TAG, "header in fastpath_read_header_rdp: X%02X", header);
-
 	if (fastpath)
 	{
 		fastpath->encryptionFlags = (header & 0xC0) >> 6;
@@ -383,8 +381,6 @@ static int fastpath_recv_update(rdpFastPath* fastpath, BYTE updateCode, wStream*
 	DEBUG_RDP("recv Fast-Path %s Update (0x%02" PRIX8 "), length:%" PRIuz "",
 	          fastpath_update_to_string(updateCode), updateCode, Stream_GetRemainingLength(s));
 #endif
-
-	WLog_INFO(TAG, "!!!updateCode: %" PRId32 "", updateCode);
 
 	switch (updateCode)
 	{
@@ -530,21 +526,16 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 
 	if (!transport)
 		return -1;
-	WLog_INFO(TAG, "===============================================");
-	WLog_INFO(TAG, "Stream_GetPosition(s) at the very beginning: %d", Stream_GetPosition(s));
+	WLog_INFO(TAG, "===== fastpath_recv_update_data =====");
+	WLog_INFO(TAG, "stream pointer starting index %d", Stream_GetPosition(s));
 	fastPathSize = Stream_GetPosition(s);
 	pStreamStart = Stream_Buffer(s);
 	Stream_GetPointer(s, pFastPathStart);
-	WLog_INFO(TAG, "pStreamStart: %02X%02X%02X%02X", pStreamStart[0], pStreamStart[1],
-	          pStreamStart[2], pStreamStart[3]);
-	WLog_INFO(TAG, "pFastPathStart: %02X%02X%02X%02X", pFastPathStart[0], pFastPathStart[1],
-	          pFastPathStart[2], pFastPathStart[3]);
+	WLog_INFO(TAG, "stream: %02X %02X %02X %02X %02X %02X %02X %02X", pStreamStart[0], pStreamStart[1], pStreamStart[2],
+	          pStreamStart[3], pStreamStart[4], pStreamStart[5], pStreamStart[6], pStreamStart[7]);
 
 	if (!fastpath_read_update_header(s, &updateCode, &fragmentation, &compression))
 		return -1;
-
-	WLog_INFO(TAG, "updateCode: %02X, fragmentation: %02X, compression: %02X", updateCode,
-	          fragmentation, compression);
 
 	if (compression == FASTPATH_OUTPUT_COMPRESSION_USED)
 	{
@@ -552,7 +543,6 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 			return -1;
 
 		Stream_Read_UINT8(s, compressionFlags);
-		WLog_INFO(TAG, "compressionFlags :%02X", compressionFlags);
 	}
 	else
 		compressionFlags = 0;
@@ -561,7 +551,11 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 		return -1;
 
 	Stream_Read_UINT16(s, size);
-	WLog_INFO(TAG, "size :%d", size);
+
+	WLog_INFO(TAG,
+	          "updateCode: %02X, fragmentation: %02X, compression: %02X, compressionFlags :%02X, "
+	          "size :%" PRId64 "",
+	          updateCode, fragmentation, compression, compressionFlags, size);
 
 	if (Stream_GetRemainingLength(s) < size)
 	{
@@ -569,19 +563,14 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 		return -1;
 	}
 
-
-	WLog_INFO(TAG, "Stream_GetPosition(s) before bulk_decompress: %d", Stream_GetPosition(s));
 	bulkStatus =
 	    bulk_decompress(rdp->bulk, Stream_Pointer(s), size, &pDstData, &DstSize, compressionFlags);
 	Stream_Seek(s, size);
-	WLog_INFO(TAG, "Stream_GetPosition(s) after Stream_Seek(s, size): %d", Stream_GetPosition(s));
-	WLog_INFO(TAG, "pDstData: %02X%02X%02X%02X, DstSize: %d", pDstData[0], pDstData[1], pDstData[2],
-	          pDstData[3], DstSize);
-	
-	fastPathSize = Stream_GetPosition(s) - fastPathSize;
-	WLog_INFO(TAG, "fastPathSize :%" PRId32 "", fastPathSize);
-	streamSize = Stream_GetPosition(s);
-	WLog_INFO(TAG, "streamSize :%" PRId32 "", streamSize);
+	WLog_INFO(TAG, "stream pointer index: %d", Stream_GetPosition(s));
+	WLog_INFO(TAG,
+	          "decompressed data: %02X %02X %02X %02X %02X %02X %02X %02X, decompressed size: %d",
+	          pDstData[0], pDstData[1], pDstData[2], pDstData[3], pDstData[4], pDstData[5],
+	          pDstData[6], pDstData[7], DstSize);
 
 	if (bulkStatus < 0)
 	{

@@ -750,7 +750,6 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
 		}
 		else
 		{
-			WLog_INFO(TAG, "header: %02X%02X%02X", header[0], header[1], header[2]);
 			isFastPathPdu = TRUE;
 			/* Fast-Path Header */
 			if (header[1] & 0x80)
@@ -764,7 +763,11 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
 			}
 			else
 				pduLength = header[1];
-
+			WLog_INFO(TAG,
+			          "========== Receive fastpath update in transport.c: %02X %02X %02X %02X %02X "
+			          "%02X %02X %02X ==========",
+			          header[0], header[1], header[2], header[3], header[4], header[5], header[6],
+			          header[7]);
 			WLog_INFO(TAG, "pduLength: %d", pduLength);
 
 			/*
@@ -1015,7 +1018,6 @@ int transport_drain_output_buffer(rdpTransport* transport)
 
 int transport_check_fds(rdpTransport* transport)
 {
-	WLog_INFO(TAG, "=== In transport_check_fds ===");
 	int status;
 	int recv_status;
 	wStream* received;
@@ -1057,9 +1059,6 @@ int transport_check_fds(rdpTransport* transport)
 		 * Note that transport->ReceiveBuffer is replaced after each iteration
 		 * of this loop with a fresh stream instance from a pool.
 		 */
-		BYTE* buffer1 = Stream_Buffer(transport->ReceiveBuffer);
-		WLog_INFO(TAG, "Before transport_read_pdu: transport->ReceiveBuffer is %02X%02X%02X%02X",
-		          buffer1[0], buffer1[1], buffer1[2], buffer1[3]);
 		if ((status = transport_read_pdu(transport, transport->ReceiveBuffer)) <= 0)
 		{
 			if (status < 0)
@@ -1073,10 +1072,6 @@ int transport_check_fds(rdpTransport* transport)
 
 		if (!(transport->ReceiveBuffer = StreamPool_Take(transport->ReceivePool, 0)))
 			return -1;
-
-		BYTE* buffer2 = Stream_Buffer(received);
-		WLog_INFO(TAG, "Before ReceiveCallback: received is %02X%02X%02X%02X, status: %d",
-		          buffer2[0], buffer2[1], buffer2[2], buffer2[3], status);
 
 		/**
 		 * status:

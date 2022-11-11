@@ -4021,7 +4021,7 @@ static BOOL update_recv_altsec_order(rdpUpdate* update, wStream* s, BYTE flags)
 }
 BOOL update_recv_order(rdpUpdate* update, wStream* s)
 {
-	WLog_INFO(TAG, "+++ update_recv_order +++");
+	WLog_INFO(TAG, "=== update_recv_order ===");
 	BOOL rc;
 	BYTE controlFlags;
 
@@ -4031,8 +4031,12 @@ BOOL update_recv_order(rdpUpdate* update, wStream* s)
 		return FALSE;
 	}
 
+	BYTE* orderBuffer;
+	Stream_GetPointer(s, orderBuffer);
 	Stream_Read_UINT8(s, controlFlags); /* controlFlags (1 byte) */
-	WLog_INFO(TAG, "controlFlags %" PRId32 "", controlFlags);
+	WLog_INFO(TAG, "controlFlags %02X", controlFlags);
+	WLog_INFO(TAG, "orderBuffer %02X %02X %02X %02X %02X %02X %02X %02X", orderBuffer[0], orderBuffer[1], orderBuffer[2], orderBuffer[3], orderBuffer[4], orderBuffer[5],
+	          orderBuffer[7], orderBuffer[7]);
 
 	if (!(controlFlags & ORDER_STANDARD))
 		rc = update_recv_altsec_order(update, s, controlFlags);
