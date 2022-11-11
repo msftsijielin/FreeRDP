@@ -656,6 +656,7 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
 	size_t position;
 	size_t pduLength;
 	BYTE* header;
+	BOOL isFastPathPdu = FALSE;
 	pduLength = 0;
 
 	if (!transport)
@@ -750,6 +751,7 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
 		else
 		{
 			WLog_INFO(TAG, "header: %02X%02X%02X", header[0], header[1], header[2]);
+			isFastPathPdu = TRUE;
 			/* Fast-Path Header */
 			if (header[1] & 0x80)
 			{
@@ -789,6 +791,17 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
 
 	if (Stream_GetPosition(s) >= pduLength)
 		WLog_Packet(transport->log, WLOG_TRACE, Stream_Buffer(s), pduLength, WLOG_PACKET_INBOUND);
+
+	/* Record fastpath update PDU */
+	if (transport->context->rdp->update->dump_rfx == TRUE &&
+	    transport->context->rdp->update->pcap_rfx && isFastPathPdu == TRUE)
+	{
+		BOOL isPcapAddSucceeded =
+		    pcap_add_record(transport->context->rdp->update->pcap_rfx, Stream_Buffer(s), pduLength);
+		WLog_INFO(TAG, "!!!!!Recording!!!!! size: %" PRId32 ", isPcapAddSucceeded: %" PRId32 "",
+		          pduLength, isPcapAddSucceeded);
+		pcap_flush(transport->context->rdp->update->pcap_rfx);
+	}
 
 	Stream_SealLength(s);
 	Stream_SetPosition(s, 0);
@@ -1062,8 +1075,8 @@ int transport_check_fds(rdpTransport* transport)
 			return -1;
 
 		BYTE* buffer2 = Stream_Buffer(received);
-		WLog_INFO(TAG, "Before ReceiveCallback: received is %02X%02X%02X%02X",
-		          buffer2[0], buffer2[1], buffer2[2], buffer2[3]);
+		WLog_INFO(TAG, "Before ReceiveCallback: received is %02X%02X%02X%02X, status: %d",
+		          buffer2[0], buffer2[1], buffer2[2], buffer2[3], status);
 
 		/**
 		 * status:

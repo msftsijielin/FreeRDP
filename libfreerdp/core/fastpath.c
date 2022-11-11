@@ -581,17 +581,6 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	WLog_INFO(TAG, "fastPathSize :%" PRId32 "", fastPathSize);
 	streamSize = Stream_GetPosition(s);
 	WLog_INFO(TAG, "streamSize :%" PRId32 "", streamSize);
-	if (fastpath->rdp->update->dump_rfx == TRUE && fastpath->rdp->update->pcap_rfx &&
-	    (fragmentation == FASTPATH_FRAGMENT_SINGLE || fragmentation == FASTPATH_FRAGMENT_LAST))
-	{
-		BOOL isPcapAddSucceeded =
-		    pcap_add_record(fastpath->rdp->update->pcap_rfx, pStreamStart, streamSize);
-		WLog_INFO(TAG,
-		          "!!!!!Recording!!!!! size: %" PRId32
-		          ", isPcapAddSucceeded: %" PRId32 "",
-		          streamSize, isPcapAddSucceeded);
-		pcap_flush(fastpath->rdp->update->pcap_rfx);
-	}
 
 	if (bulkStatus < 0)
 	{
