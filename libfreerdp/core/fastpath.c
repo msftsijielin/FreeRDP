@@ -289,6 +289,7 @@ static BOOL fastpath_recv_orders(rdpFastPath* fastpath, wStream* s)
 
 	while (numberOrders > 0)
 	{
+		WLog_INFO(TAG, "numberOrders: %" PRId64 "", numberOrders);
 		if (!update_recv_order(update, s))
 			return FALSE;
 
