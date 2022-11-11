@@ -763,12 +763,6 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
 			}
 			else
 				pduLength = header[1];
-			WLog_INFO(TAG,
-			          "========== Receive fastpath update in transport.c: %02X %02X %02X %02X %02X "
-			          "%02X %02X %02X ==========",
-			          header[0], header[1], header[2], header[3], header[4], header[5], header[6],
-			          header[7]);
-			WLog_INFO(TAG, "pduLength: %d", pduLength);
 
 			/*
 			 * fast-path has 7 bits for length so the maximum size, including headers is 0x8000
@@ -794,6 +788,16 @@ int transport_read_pdu(rdpTransport* transport, wStream* s)
 
 	if (Stream_GetPosition(s) >= pduLength)
 		WLog_Packet(transport->log, WLOG_TRACE, Stream_Buffer(s), pduLength, WLOG_PACKET_INBOUND);
+
+	if (isFastPathPdu == TRUE)
+	{
+		WLog_INFO(TAG,
+			"========== Receive fastpath update in transport.c: %02X %02X %02X %02X %02X "
+			"%02X %02X %02X ==========",
+			header[0], header[1], header[2], header[3], header[4], header[5], header[6],
+			header[7]);
+		WLog_INFO(TAG, "pduLength: %d", pduLength);
+	}
 
 	/* Record fastpath update PDU */
 	if (transport->context->rdp->update->dump_rfx == TRUE &&
