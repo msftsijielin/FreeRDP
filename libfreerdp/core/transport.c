@@ -1048,7 +1048,6 @@ int transport_check_fds(rdpTransport* transport)
 
 	while (now < dueDate)
 	{
-		WLog_INFO(TAG, "NOW: %" PRIu64 ", dueDate: %" PRIu64 "", now, dueDate);
 		if (freerdp_shall_disconnect(transport->context->instance))
 		{
 			return -1;
