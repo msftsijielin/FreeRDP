@@ -297,7 +297,7 @@ static BOOL fastpath_recv_orders(rdpFastPath* fastpath, wStream* s)
 
 	while (numberOrders > 0)
 	{
-		WLog_INFO(TAG, "numberOrders: %" PRId64 "", numberOrders);
+		//WLog_INFO(TAG, "numberOrders: %" PRId64 "", numberOrders);
 		if (!update_recv_order(update, s))
 			return FALSE;
 
@@ -547,18 +547,6 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	if (!fastpath_read_update_header(s, &updateCode, &fragmentation, &compression))
 		return -1;
 
-	if (updateCode == FASTPATH_UPDATETYPE_ORDERS)
-	{
-		WLog_INFO(TAG, "= fastpath ORDERS stream - size %d =", streamSize);
-		for (int i = 0; i < streamSize; i += 8)
-		{
-			WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, pStreamStart[i],
-			          pStreamStart[i + 1], pStreamStart[i + 2], pStreamStart[i + 3],
-			          pStreamStart[i + 4], pStreamStart[i + 5], pStreamStart[i + 6],
-			          pStreamStart[i + 7]);
-		}
-	}
-
 	if (compression == FASTPATH_OUTPUT_COMPRESSION_USED)
 	{
 		if (Stream_GetRemainingLength(s) < 1)
@@ -584,21 +572,21 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 		WLog_ERR(TAG, "Stream_GetRemainingLength() < size");
 		return -1;
 	}
-
+	
 	bulkStatus =
 	    bulk_decompress(rdp->bulk, Stream_Pointer(s), size, &pDstData, &DstSize, compressionFlags);
 	Stream_Seek(s, size);
 	//WLog_INFO(TAG, "stream pointer index: %d", Stream_GetPosition(s));
-	if (updateCode == FASTPATH_UPDATETYPE_ORDERS)
-	{
-		WLog_INFO(TAG, "= fastpath decompressed stream - size %d =", DstSize);
-		for (int i = 0; i < DstSize; i += 8)
-		{
-			WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, pDstData[i],
-			          pDstData[i + 1], pDstData[i + 2], pDstData[i + 3], pDstData[i + 4],
-			          pDstData[i + 5], pDstData[i + 6], pDstData[i + 7]);
-		}
-	}
+	//if (updateCode == FASTPATH_UPDATETYPE_ORDERS)
+	//{
+	//	WLog_INFO(TAG, "= fastpath decompressed stream - size %d =", DstSize);
+	//	for (int i = 0; i < DstSize; i += 8)
+	//	{
+	//		WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, pDstData[i],
+	//		          pDstData[i + 1], pDstData[i + 2], pDstData[i + 3], pDstData[i + 4],
+	//		          pDstData[i + 5], pDstData[i + 6], pDstData[i + 7]);
+	//	}
+	//}
 
 	if (bulkStatus < 0)
 	{

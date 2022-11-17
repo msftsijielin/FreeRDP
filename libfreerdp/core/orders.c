@@ -3441,7 +3441,7 @@ static BOOL update_recv_primary_order(rdpUpdate* update, wStream* s, BYTE flags)
 	}
 
 	orderName = primary_order_string(orderInfo->orderType);
-	WLog_INFO(TAG, "Primary Drawing Order %s", orderName);
+	//WLog_INFO(TAG, "Primary Drawing Order %s", orderName);
 	WLog_Print(update->log, WLOG_DEBUG, "Primary Drawing Order %s", orderName);
 
 	if (!check_primary_order_supported(update->log, settings, orderInfo->orderType, orderName))
@@ -3700,7 +3700,7 @@ static BOOL update_recv_secondary_order(rdpUpdate* update, wStream* s, BYTE flag
 
 	start = Stream_GetPosition(s);
 	name = secondary_order_string(orderType);
-	WLog_INFO(TAG, "Secondary Drawing Order %s", name);
+	//WLog_INFO(TAG, "Secondary Drawing Order %s", name);
 	WLog_Print(update->log, WLOG_DEBUG, "Secondary Drawing Order %s", name);
 	rc = IFCALLRESULT(TRUE, secondary->CacheOrderInfo, context, orderLength, extraFlags, orderType,
 	                  name);
@@ -3935,7 +3935,7 @@ static BOOL update_recv_altsec_order(rdpUpdate* update, wStream* s, BYTE flags)
 	rdpSettings* settings = context->settings;
 	rdpAltSecUpdate* altsec = update->altsec;
 	const char* orderName = altsec_order_string(orderType);
-	WLog_INFO(TAG, "Alternate Secondary Drawing Order %s", orderName);
+	//WLog_INFO(TAG, "Alternate Secondary Drawing Order %s", orderName);
 	WLog_Print(update->log, WLOG_DEBUG, "Alternate Secondary Drawing Order %s", orderName);
 
 	rc = IFCALLRESULT(TRUE, altsec->DrawOrderInfo, context, orderType, orderName);

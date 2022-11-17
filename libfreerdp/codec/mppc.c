@@ -89,6 +89,7 @@ static const UINT32 MPPC_MATCH_TABLE[256] = {
 int mppc_decompress(MPPC_CONTEXT* mppc, BYTE* pSrcData, UINT32 SrcSize, BYTE** ppDstData,
                     UINT32* pDstSize, UINT32 flags)
 {
+	WLog_INFO(TAG, "in mppc_decompress");
 	BYTE Literal;
 	BYTE* SrcPtr;
 	UINT32 CopyOffset;
@@ -104,6 +105,7 @@ int mppc_decompress(MPPC_CONTEXT* mppc, BYTE* pSrcData, UINT32 SrcSize, BYTE** p
 	HistoryBufferSize = mppc->HistoryBufferSize;
 	HistoryBufferEnd = &HistoryBuffer[HistoryBufferSize - 1];
 	CompressionLevel = mppc->CompressionLevel;
+	WLog_INFO(TAG, "mppc->CompressionLevel: %d", mppc->CompressionLevel);
 	BitStream_Attach(bs, pSrcData, SrcSize);
 	BitStream_Fetch(bs);
 

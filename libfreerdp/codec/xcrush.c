@@ -761,6 +761,7 @@ static INLINE size_t xcrush_copy_bytes(BYTE* dst, const BYTE* src, size_t num)
 static int xcrush_decompress_l1(XCRUSH_CONTEXT* xcrush, const BYTE* pSrcData, UINT32 SrcSize,
                                 BYTE** ppDstData, UINT32* pDstSize, UINT32 flags)
 {
+	WLog_INFO(TAG, "in xcrush_decompress_l1");
 	const BYTE* pSrcEnd = NULL;
 	const BYTE* Literals = NULL;
 	UINT16 MatchCount = 0;
