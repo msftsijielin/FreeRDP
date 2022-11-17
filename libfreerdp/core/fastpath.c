@@ -287,13 +287,13 @@ static BOOL fastpath_recv_orders(rdpFastPath* fastpath, wStream* s)
 	size_t size = Stream_Length(s);
 	BYTE* orderBuffer;
 	Stream_GetPointer(s, orderBuffer);
-	WLog_INFO(TAG, "= fastpath_recv_orders - size %d =", size);
-	for (int i = 0; i < size; i += 8)
-	{
-		WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, orderBuffer[i],
-		          orderBuffer[i + 1], orderBuffer[i + 2], orderBuffer[i + 3], orderBuffer[i + 4],
-		          orderBuffer[i + 5], orderBuffer[i + 6], orderBuffer[i + 7]);
-	}
+	//WLog_INFO(TAG, "= fastpath_recv_orders - size %d =", size);
+	//for (int i = 0; i < size; i += 8)
+	//{
+	//	WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, orderBuffer[i],
+	//	          orderBuffer[i + 1], orderBuffer[i + 2], orderBuffer[i + 3], orderBuffer[i + 4],
+	//	          orderBuffer[i + 5], orderBuffer[i + 6], orderBuffer[i + 7]);
+	//}
 
 	while (numberOrders > 0)
 	{

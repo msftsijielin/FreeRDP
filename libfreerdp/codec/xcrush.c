@@ -886,6 +886,17 @@ int xcrush_decompress(XCRUSH_CONTEXT* xcrush, BYTE* pSrcData, UINT32 SrcSize, BY
 	if (SrcSize < 2)
 		return -1;
 
+	if (SrcSize == 241)
+	{
+		WLog_INFO(TAG, "= xcrush_decompress =");
+		for (int i = 0; i < SrcSize; i += 8)
+		{
+			WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, pSrcData[i],
+			          pSrcData[i + 1], pSrcData[i + 2], pSrcData[i + 3], pSrcData[i + 4],
+			          pSrcData[i + 5], pSrcData[i + 6], pSrcData[i + 7]);
+		}
+	}
+
 	Level1ComprFlags = pSrcData[0];
 	Level2ComprFlags = pSrcData[1];
 	pSrcData += 2;
@@ -907,10 +918,34 @@ int xcrush_decompress(XCRUSH_CONTEXT* xcrush, BYTE* pSrcData, UINT32 SrcSize, BY
 	status =
 	    mppc_decompress(xcrush->mppc, pSrcData, SrcSize, &pDstData, &DstSize, Level2ComprFlags);
 
+	if (SrcSize == 239)
+	{
+		WLog_INFO(TAG, "AFTER mppc_decompress");
+		for (int i = 0; i < DstSize; i += 8)
+		{
+			WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, pDstData[i],
+			          pDstData[i + 1], pDstData[i + 2], pDstData[i + 3], pDstData[i + 4],
+			          pDstData[i + 5], pDstData[i + 6], pDstData[i + 7]);
+		}
+	}
+
 	if (status < 0)
 		return status;
 
 	status = xcrush_decompress_l1(xcrush, pDstData, DstSize, ppDstData, pDstSize, Level1ComprFlags);
+
+	if (SrcSize == 239)
+	{
+		WLog_INFO(TAG, "AFTER xcrush_decompress_l1");
+		UINT32 tempsize = *pDstSize;
+		BYTE* buffer = *ppDstData;
+		for (int i = 0; i < tempsize; i += 8)
+		{
+			WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, buffer[i],
+			          buffer[i + 1], buffer[i + 2], buffer[i + 3], buffer[i + 4],
+			          buffer[i + 5], buffer[i + 6], buffer[i + 7]);
+		}
+	}
 	return status;
 }
 
