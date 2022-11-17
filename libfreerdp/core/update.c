@@ -1201,7 +1201,21 @@ static BOOL update_send_surface_command(rdpContext* context, wStream* s)
 	}
 
 	Stream_Write(update, Stream_Buffer(s), Stream_GetPosition(s));
-	ret = fastpath_send_update_pdu(rdp->fastpath, FASTPATH_UPDATETYPE_SURFCMDS, update, FALSE);
+
+	BYTE* buffer = Stream_Buffer(update);
+	if (buffer == NULL)
+	{
+		WLog_INFO(TAG, "null update!!!");
+	} else
+	{
+		WLog_INFO(TAG, "sending stream %02X %02X %02X %02X %02X %02X %02X %02X", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7]);
+	}
+	
+	if (transport_write(rdp->transport, update) < 0)
+	{
+		ret = FALSE;
+		goto out;
+	}
 out:
 	Stream_Release(update);
 	return ret;
