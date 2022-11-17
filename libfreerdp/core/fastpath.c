@@ -284,6 +284,16 @@ static BOOL fastpath_recv_orders(rdpFastPath* fastpath, wStream* s)
 	}
 
 	Stream_Read_UINT16(s, numberOrders); /* numberOrders (2 bytes) */
+	size_t size = Stream_Length(s);
+	BYTE* orderBuffer;
+	Stream_GetPointer(s, orderBuffer);
+	WLog_INFO(TAG, "= fastpath_recv_orders - size %d =", size);
+	for (int i = 0; i < size; i += 8)
+	{
+		WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, orderBuffer[i],
+		          orderBuffer[i + 1], orderBuffer[i + 2], orderBuffer[i + 3], orderBuffer[i + 4],
+		          orderBuffer[i + 5], orderBuffer[i + 6], orderBuffer[i + 7]);
+	}
 
 	while (numberOrders > 0)
 	{
@@ -527,15 +537,27 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	if (!transport)
 		return -1;
 	WLog_INFO(TAG, "===== fastpath_recv_update_data =====");
-	WLog_INFO(TAG, "stream pointer starting index %d", Stream_GetPosition(s));
+	//WLog_INFO(TAG, "stream pointer starting index %d", Stream_GetPosition(s));
 	fastPathSize = Stream_GetPosition(s);
 	pStreamStart = Stream_Buffer(s);
 	Stream_GetPointer(s, pFastPathStart);
-	WLog_INFO(TAG, "stream: %02X %02X %02X %02X %02X %02X %02X %02X", pStreamStart[0], pStreamStart[1], pStreamStart[2],
-	          pStreamStart[3], pStreamStart[4], pStreamStart[5], pStreamStart[6], pStreamStart[7]);
+
+	streamSize = Stream_Length(s);
 
 	if (!fastpath_read_update_header(s, &updateCode, &fragmentation, &compression))
 		return -1;
+
+	if (updateCode == FASTPATH_UPDATETYPE_ORDERS)
+	{
+		WLog_INFO(TAG, "= fastpath ORDERS stream - size %d =", streamSize);
+		for (int i = 0; i < streamSize; i += 8)
+		{
+			WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, pStreamStart[i],
+			          pStreamStart[i + 1], pStreamStart[i + 2], pStreamStart[i + 3],
+			          pStreamStart[i + 4], pStreamStart[i + 5], pStreamStart[i + 6],
+			          pStreamStart[i + 7]);
+		}
+	}
 
 	if (compression == FASTPATH_OUTPUT_COMPRESSION_USED)
 	{
@@ -566,11 +588,17 @@ static int fastpath_recv_update_data(rdpFastPath* fastpath, wStream* s)
 	bulkStatus =
 	    bulk_decompress(rdp->bulk, Stream_Pointer(s), size, &pDstData, &DstSize, compressionFlags);
 	Stream_Seek(s, size);
-	WLog_INFO(TAG, "stream pointer index: %d", Stream_GetPosition(s));
-	WLog_INFO(TAG,
-	          "decompressed data: %02X %02X %02X %02X %02X %02X %02X %02X, decompressed size: %d",
-	          pDstData[0], pDstData[1], pDstData[2], pDstData[3], pDstData[4], pDstData[5],
-	          pDstData[6], pDstData[7], DstSize);
+	//WLog_INFO(TAG, "stream pointer index: %d", Stream_GetPosition(s));
+	if (updateCode == FASTPATH_UPDATETYPE_ORDERS)
+	{
+		WLog_INFO(TAG, "= fastpath decompressed stream - size %d =", DstSize);
+		for (int i = 0; i < DstSize; i += 8)
+		{
+			WLog_INFO(TAG, "%8d - %02X %02X %02X %02X %02X %02X %02X %02X", i, pDstData[i],
+			          pDstData[i + 1], pDstData[i + 2], pDstData[i + 3], pDstData[i + 4],
+			          pDstData[i + 5], pDstData[i + 6], pDstData[i + 7]);
+		}
+	}
 
 	if (bulkStatus < 0)
 	{
