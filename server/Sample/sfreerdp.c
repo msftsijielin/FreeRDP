@@ -787,6 +787,7 @@ static DWORD WINAPI test_peer_mainloop(LPVOID arg)
 	client->settings->TlsSecurity = TRUE;
 	client->settings->NlaSecurity = FALSE;
 	client->settings->EncryptionLevel = ENCRYPTION_LEVEL_CLIENT_COMPATIBLE;
+	client->settings->OrderSupport[NEG_MEMBLT_INDEX] = TRUE;
 	/* client->settings->EncryptionLevel = ENCRYPTION_LEVEL_HIGH; */
 	/* client->settings->EncryptionLevel = ENCRYPTION_LEVEL_LOW; */
 	/* client->settings->EncryptionLevel = ENCRYPTION_LEVEL_FIPS; */
