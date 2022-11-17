@@ -784,6 +784,8 @@ static int xcrush_decompress_l1(XCRUSH_CONTEXT* xcrush, const BYTE* pSrcData, UI
 	if (flags & L1_PACKET_AT_FRONT)
 		xcrush->HistoryOffset = 0;
 
+	WLog_INFO(TAG, "xcrush->HistoryOffset: %d", xcrush->HistoryOffset);
+
 	pSrcEnd = &pSrcData[SrcSize];
 	HistoryBuffer = xcrush->HistoryBuffer;
 	HistoryBufferSize = xcrush->HistoryBufferSize;
@@ -816,6 +818,8 @@ static int xcrush_decompress_l1(XCRUSH_CONTEXT* xcrush, const BYTE* pSrcData, UI
 			Data_Read_UINT16(&MatchDetails[MatchIndex].MatchOutputOffset, MatchOutputOffset);
 			Data_Read_UINT32(&MatchDetails[MatchIndex].MatchHistoryOffset, MatchHistoryOffset);
 
+			WLog_INFO(TAG, "MatchLength: %d, MatchOutputOffset: %d, MatchHistoryOffset: %d", MatchLength, MatchOutputOffset, MatchHistoryOffset);
+
 			if (MatchOutputOffset < OutputOffset)
 				return -1005;
 
@@ -826,6 +830,8 @@ static int xcrush_decompress_l1(XCRUSH_CONTEXT* xcrush, const BYTE* pSrcData, UI
 				return -1007;
 
 			OutputLength = MatchOutputOffset - OutputOffset;
+
+			WLog_INFO(TAG, "OutputLength: %d", OutputLength);
 
 			if ((MatchOutputOffset - OutputOffset) > HistoryBufferSize)
 				return -1008;
@@ -854,6 +860,7 @@ static int xcrush_decompress_l1(XCRUSH_CONTEXT* xcrush, const BYTE* pSrcData, UI
 			xcrush_copy_bytes(HistoryPtr, OutputPtr, MatchLength);
 			OutputOffset += MatchLength;
 			HistoryPtr += MatchLength;
+			WLog_INFO(TAG, "OutputOffset: %d", OutputOffset);
 		}
 	}
 
