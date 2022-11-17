@@ -568,11 +568,11 @@ BOOL tf_peer_post_connect(freerdp_peer* client)
 
 	/* A real server should tag the peer as activated here and start sending updates in main loop.
 	 */
-	if (!test_peer_load_icon(client))
-	{
-		WLog_DBG(TAG, "Unable to load icon");
-		return FALSE;
-	}
+	// if (!test_peer_load_icon(client))
+	// {
+	// 	WLog_DBG(TAG, "Unable to load icon");
+	// 	return FALSE;
+	// }
 
 	if (WTSVirtualChannelManagerIsChannelJoined(context->vcm, "rdpdbg"))
 	{
@@ -924,7 +924,7 @@ static void test_server_mainloop(freerdp_listener* instance)
 
 int main(int argc, char* argv[])
 {
-	const char spcap[] = "--";
+	const char spcap[] = "--pcap=";
 	const char sfast[] = "--fast";
 	const char sport[] = "--port=";
 	const char slocal_only[] = "--local_only";
@@ -956,8 +956,15 @@ int main(int argc, char* argv[])
 		}
 		else if (strncmp(arg, slocal_only, sizeof(slocal_only)) == 0)
 			localOnly = TRUE;
-		else if (strncmp(arg, spcap, sizeof(spcap)) == 0)
+		else if (strncmp(arg, spcap, sizeof(spcap) - 1) == 0)
+		{
+			StrSep(&arg, "=");
+
+			if (!arg)
+				return -1;
+
 			test_pcap_file = arg;
+		}
 	}
 
 	WTSRegisterWtsApiFunctionTable(FreeRDP_InitWtsApi());
