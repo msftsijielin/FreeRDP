@@ -446,8 +446,6 @@ BOOL tf_peer_dump_rfx(freerdp_peer* client)
 			return FALSE;
 		}
 
-		WLog_INFO(TAG, "========== PCAP OPENED ==========");
-
 		prev_seconds = prev_useconds = 0;
 
 		while (pcap_has_next_record(pcap_rfx))

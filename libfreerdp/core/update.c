@@ -1205,20 +1205,7 @@ static BOOL update_send_surface_command(rdpContext* context, wStream* s)
 	Stream_SetPosition(s, 0);
 	Stream_Read_UINT8(s, updateCode);
 	Stream_Read_UINT16(s, size);
-	WLog_INFO(TAG, "updateCode: %d, size: %d", updateCode, size);
-
 	Stream_Write(update, Stream_Buffer(s) + 3, size);
-
-	BYTE* buffer = Stream_Buffer(update);
-	if (buffer == NULL)
-	{
-		WLog_INFO(TAG, "null update!!!");
-	} else
-	{
-		WLog_INFO(TAG, "sending %8d stream %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X", Stream_GetPosition(update),
-		buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7],
-		buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15]);
-	}
 	
 	ret = fastpath_send_update_pdu(rdp->fastpath, updateCode, update, FALSE);
 out:
