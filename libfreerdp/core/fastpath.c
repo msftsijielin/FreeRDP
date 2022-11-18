@@ -491,6 +491,26 @@ static int fastpath_recv_update(rdpFastPath* fastpath, BYTE updateCode, wStream*
 		return -1;
 	}
 
+	/* Record fastpath update. Format: 1 byte of update code +  2 bytes of size + decompressed data */
+	if (update->dump_rfx == TRUE && update->pcap_rfx)
+	{
+		wStream* record = fastpath_update_pdu_init(fastpath);
+		if (!record)
+			return -1;
+
+		Stream_Write_UINT8(record, updateCode);
+		size_t record_length = Stream_Length(s);
+		Stream_Write_UINT16(record, record_length);
+		if (!Stream_EnsureRemainingCapacity(record, record_length))
+			return -1;
+		Stream_Write(record, Stream_Buffer(s), record_length);
+		Stream_SealLength(record);
+
+		pcap_add_record(update->pcap_rfx, Stream_Buffer(record), Stream_Length(record));
+		pcap_flush(update->pcap_rfx);
+		Stream_Release(record);
+	}
+
 	return status;
 }
 
