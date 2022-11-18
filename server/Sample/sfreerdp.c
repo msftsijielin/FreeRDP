@@ -438,36 +438,45 @@ BOOL tf_peer_dump_rfx(freerdp_peer* client)
 
 	update = client->update;
 
-	if (!(pcap_rfx = pcap_open(test_pcap_file, FALSE)))
-		return FALSE;
-
-	prev_seconds = prev_useconds = 0;
-
-	while (pcap_has_next_record(pcap_rfx))
+	while (client->CheckFileDescriptor(client) == TRUE)
 	{
-		if (!pcap_get_next_record_header(pcap_rfx, &record))
-			break;
+		if (!(pcap_rfx = pcap_open(test_pcap_file, FALSE)))
+		{
+			Stream_Free(s, TRUE);
+			return FALSE;
+		}
 
-		if (!Stream_EnsureCapacity(s, record.length))
-			break;
+		WLog_INFO(TAG, "========== PCAP OPENED ==========");
 
-		record.data = Stream_Buffer(s);
-		pcap_get_next_record_content(pcap_rfx, &record);
-		Stream_SetPointer(s, Stream_Buffer(s) + record.length);
+		prev_seconds = prev_useconds = 0;
 
-		if (test_dump_rfx_realtime &&
-		    test_sleep_tsdiff(&prev_seconds, &prev_useconds, record.header.ts_sec,
-		                      record.header.ts_usec) == FALSE)
-			break;
-	
-		update->SurfaceCommand(update->context, s);
+		while (pcap_has_next_record(pcap_rfx))
+		{
+			if (!pcap_get_next_record_header(pcap_rfx, &record))
+				break;
 
-		if (client->CheckFileDescriptor(client) != TRUE)
-			break;
+			if (!Stream_EnsureCapacity(s, record.length))
+				break;
+
+			record.data = Stream_Buffer(s);
+			pcap_get_next_record_content(pcap_rfx, &record);
+			Stream_SetPointer(s, Stream_Buffer(s) + record.length);
+
+			if (test_dump_rfx_realtime &&
+				test_sleep_tsdiff(&prev_seconds, &prev_useconds, record.header.ts_sec,
+								record.header.ts_usec) == FALSE)
+				break;
+		
+			update->SurfaceCommand(update->context, s);
+
+			if (client->CheckFileDescriptor(client) != TRUE)
+				break;
+		}
+
+		pcap_close(pcap_rfx);
 	}
 
 	Stream_Free(s, TRUE);
-	pcap_close(pcap_rfx);
 	return TRUE;
 }
 

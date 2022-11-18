@@ -1189,6 +1189,8 @@ static BOOL update_send_surface_command(rdpContext* context, wStream* s)
 	wStream* update;
 	rdpRdp* rdp = context->rdp;
 	BOOL ret;
+	BYTE updateCode;
+	UINT16 size;
 	update = fastpath_update_pdu_init(rdp->fastpath);
 
 	if (!update)
@@ -1200,7 +1202,12 @@ static BOOL update_send_surface_command(rdpContext* context, wStream* s)
 		goto out;
 	}
 
-	Stream_Write(update, Stream_Buffer(s), Stream_GetPosition(s));
+	Stream_SetPosition(s, 0);
+	Stream_Read_UINT8(s, updateCode);
+	Stream_Read_UINT16(s, size);
+	WLog_INFO(TAG, "updateCode: %d, size: %d", updateCode, size);
+
+	Stream_Write(update, Stream_Buffer(s) + 3, size);
 
 	BYTE* buffer = Stream_Buffer(update);
 	if (buffer == NULL)
@@ -1208,14 +1215,12 @@ static BOOL update_send_surface_command(rdpContext* context, wStream* s)
 		WLog_INFO(TAG, "null update!!!");
 	} else
 	{
-		WLog_INFO(TAG, "sending stream %02X %02X %02X %02X %02X %02X %02X %02X", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7]);
+		WLog_INFO(TAG, "sending %8d stream %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X", Stream_GetPosition(update),
+		buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7],
+		buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15]);
 	}
 	
-	if (transport_write(rdp->transport, update) < 0)
-	{
-		ret = FALSE;
-		goto out;
-	}
+	ret = fastpath_send_update_pdu(rdp->fastpath, updateCode, update, FALSE);
 out:
 	Stream_Release(update);
 	return ret;
