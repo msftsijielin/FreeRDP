@@ -688,12 +688,12 @@ static int peer_recv_callback(rdpTransport* transport, wStream* s, void* extra)
 			break;
 
 		case CONNECTION_STATE_ACTIVE:
-			if (peer_recv_pdu(client, s) < 0)
-			{
-				WLog_ERR(TAG, "%s: %s - peer_recv_pdu() fail", __FUNCTION__,
-				         rdp_server_connection_state_string(rdp->state));
-				return -1;
-			}
+			// if (peer_recv_pdu(client, s) < 0)
+			// {
+			// 	WLog_ERR(TAG, "%s: %s - peer_recv_pdu() fail", __FUNCTION__,
+			// 	         rdp_server_connection_state_string(rdp->state));
+			// 	return -1;
+			// }
 
 			break;
 

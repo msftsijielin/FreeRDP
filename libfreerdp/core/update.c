@@ -1189,6 +1189,8 @@ static BOOL update_send_surface_command(rdpContext* context, wStream* s)
 	wStream* update;
 	rdpRdp* rdp = context->rdp;
 	BOOL ret;
+	BYTE updateCode;
+	UINT16 size;
 	update = fastpath_update_pdu_init(rdp->fastpath);
 
 	if (!update)
@@ -1200,8 +1202,12 @@ static BOOL update_send_surface_command(rdpContext* context, wStream* s)
 		goto out;
 	}
 
-	Stream_Write(update, Stream_Buffer(s), Stream_GetPosition(s));
-	ret = fastpath_send_update_pdu(rdp->fastpath, FASTPATH_UPDATETYPE_SURFCMDS, update, FALSE);
+	Stream_SetPosition(s, 0);
+	Stream_Read_UINT8(s, updateCode);
+	Stream_Read_UINT16(s, size);
+	Stream_Write(update, Stream_Buffer(s) + 3, size);
+
+	ret = fastpath_send_update_pdu(rdp->fastpath, updateCode, update, FALSE);
 out:
 	Stream_Release(update);
 	return ret;
